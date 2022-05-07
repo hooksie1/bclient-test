@@ -10,7 +10,7 @@ backend_packages = [
 expected_version = 1.18
 
 [docker.registries.ghcr]
-address = ["ghcr.io]
+address = ["ghcr.io"]
 default = true
 
 [docker]
