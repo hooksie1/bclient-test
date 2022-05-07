@@ -7,7 +7,7 @@ backend_packages = [
 ]
 
 [golang]
-expected_version = 1.18
+expected_version = 1.17
 
 [docker.registries.ghcr]
 address = ["ghcr.io"]
