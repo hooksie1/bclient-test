@@ -1,0 +1,58 @@
+name: Pants
+
+on: [push, pull_request]
+
+env:
+  REGISTRY: ghcr.io
+  GIT_BRANCH: ${GITHUB_REF##*/}
+
+jobs:
+  org-check:
+    name: Check GitHub Organization
+    if: ${{ github.repository_owner == 'pantsbuild' }}
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Noop
+        run: "true"
+  build:
+    name: Perform CI Checks
+    needs: org-check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      id: cache
+      with:
+        path: |
+          ~/.cache/pants/setup
+          ~/.cache/pants/lmdb_store
+          ~/.cache/pants/named_caches
+        key: ${{ runner.os }}-
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17.1
+    - name: Bootstrap Pants
+      run: ./pants --version
+    - name: Check Pants config files
+      run: ./pants tailor --check update-build-files --check
+    - name: Lint and compile
+      run: ./pants lint check '::'
+    - name: Test
+      run: ./pants test '::'
+    - name: Log into GHCR
+      uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Package / Publish
+      run: |
+        ./pants package ::
+        ./pants publish ::
+    - name: Upload Pants log
+      uses: actions/upload-artifact@v2
+      with:
+        name: pants-log
+        path: .pants.d/pants.log
+      if: always()  # We want the log even on failures.
