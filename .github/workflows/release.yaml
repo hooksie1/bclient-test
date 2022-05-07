@@ -7,16 +7,8 @@ env:
   GIT_BRANCH: ${GITHUB_REF##*/}
 
 jobs:
-  org-check:
-    name: Check GitHub Organization
-    if: ${{ github.repository_owner == 'pantsbuild' }}
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Noop
-        run: "true"
   build:
     name: Perform CI Checks
-    needs: org-check
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
